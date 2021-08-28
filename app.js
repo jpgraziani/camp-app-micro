@@ -12,9 +12,6 @@ const Campground = require('./models/campground');
 
 const app = express();
 
-// monogo db
-const dbUri = '';
-
 mongoose.connect(process.env.CAMPGROUND_URI, { useNewUrlParser: true, useUnifiedTopology: true})
   .then((res) => console.log('connected to db'))
   .catch((err => console.log(err)))

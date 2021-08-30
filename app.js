@@ -2,6 +2,7 @@ require('dotenv').config()
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
+const ejsMate = require('ejs-mate');
 const methodOverride = require('method-override')
 const Campground = require('./models/campground');
 
@@ -12,6 +13,8 @@ const Campground = require('./models/campground');
 // });
 
 const app = express();
+
+app.engine('ejs', ejsMate);
 
 mongoose.connect(process.env.CAMPGROUND_URI, { useNewUrlParser: true, useUnifiedTopology: true})
   .then((res) => console.log('connected to db'))
@@ -59,6 +62,12 @@ app.put('/campgrounds/:id', async (req, res) => {
   const { id } = req.params;
   const campground = await Campground.findByIdAndUpdate(id, {...req.body.campground});
   res.redirect(`/campgrounds/${campground._id}`)
+})
+
+app.delete('/campgrounds/:id', async (req, res) => {
+  const { id } = req.params;
+  await Campground.findByIdAndDelete(id);
+  res.redirect('/campgrounds');
 })
 
 app.listen(3000, () => {

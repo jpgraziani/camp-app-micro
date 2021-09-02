@@ -81,7 +81,7 @@ app.delete('/campgrounds/:id', catchAsync(async (req, res) => {
   await Campground.findByIdAndDelete(id);
   res.redirect('/campgrounds');
 }))
-
+// error middleware
 app.all('*', (req, res, next) => {
   next(new ExpressError('Page Not Found', 404))
 })
@@ -92,6 +92,7 @@ app.use((err, req, res, next) => {
   res.status(statusCode).render('error', {err})
 })
 
+// port
 app.listen(3000, () => {
   console.log('listening on port 3000')
 })

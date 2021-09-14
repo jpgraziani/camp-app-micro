@@ -3,11 +3,12 @@ const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
 const ejsMate = require('ejs-mate');
-const { campgroundSchema } = require('./schemas');
+const { campgroundSchema, reviewSchema } = require('./schemas');
 const catchAsync = require('./utils/CatchAsync');
 const ExpressError = require('./utils/ExpressError');
 const methodOverride = require('method-override');
 const Campground = require('./models/campground');
+const Review = require('./models/review');
 const CatchAsync = require('./utils/CatchAsync');
 
 const app = express();
@@ -37,6 +38,18 @@ const validateCampground = (req, res, next) => {
     next();
   }
 }
+
+const validateReview = (req, res, next) => {
+  const { error } = reviewSchema.validate(req.body);
+
+  if(error) {
+    const msg = error.details.map(el => el.message).join('/')
+    throw new ExpressError(msg, 400)
+  } else {
+    next();
+  }
+}
+
 // ********* end of middleware
 
 app.get('/', (req, res) => {
@@ -76,6 +89,15 @@ app.put('/campgrounds/:id', validateCampground, catchAsync(async (req, res) => {
   res.redirect(`/campgrounds/${campground._id}`)
 }))
 
+//nested path  side note order of these matter. I had it after app.delete and it could not find page
+app.post('/campgrounds/:id/reviews', validateReview, catchAsync(async (req, res) => {
+  const campground = await Campground.findById(req.params.id);
+  const review = new Review(req.body.review);
+  await review.save();
+  await campground.save();
+  res.redirect(`/campgrounds/${campground._id}`);
+}))
+
 app.delete('/campgrounds/:id', catchAsync(async (req, res) => {
   const { id } = req.params;
   await Campground.findByIdAndDelete(id);
@@ -85,6 +107,8 @@ app.delete('/campgrounds/:id', catchAsync(async (req, res) => {
 app.all('*', (req, res, next) => {
   next(new ExpressError('Page Not Found', 404))
 })
+
+
 
 app.use((err, req, res, next) => {
   const {statusCode = 500} = err;
